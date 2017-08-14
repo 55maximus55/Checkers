@@ -11,6 +11,13 @@ class GDXGame : Game() {
 
     override fun create() {
         connectServer()
+        configEvents()
+    }
+
+    private fun configEvents() {
+        socket.on(Socket.EVENT_CONNECT) {
+            Gdx.app.log("SocketIO", "Connected")
+        }
     }
 
     fun connectServer() {

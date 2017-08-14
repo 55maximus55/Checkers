@@ -2,9 +2,7 @@ var app = require('express')();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 
-var mysql = require('mysql');
-
-server.listen(34197, function(){
+server.listen(34197, function() {
     console.log("Server started");
 });
 
