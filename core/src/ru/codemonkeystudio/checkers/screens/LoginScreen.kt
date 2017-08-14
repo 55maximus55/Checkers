@@ -15,25 +15,33 @@ import ru.codemonkeystudio.checkers.GDXGame
 class LoginScreen(game: GDXGame) : Screen {
     var game: GDXGame = game
 
+    //cam & stage
     var camera = OrthographicCamera()
     var stage = Stage(FitViewport(Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat(), camera))
 
     override fun show() {
+        //set input
         Gdx.input.inputProcessor = stage
 
-        val table = Table()
-        table.center()
-        table.setFillParent(true)
+        //init table
+        val table = Table().apply {
+            center()
+            setFillParent(true)
+        }
 
-        val textFieldStyle = TextField.TextFieldStyle()
-        textFieldStyle.font = BitmapFont()
-        textFieldStyle.fontColor = Color.GRAY
-        textFieldStyle.focusedFontColor = Color.WHITE
+        //init styles
+        val textFieldStyle = TextField.TextFieldStyle().apply {
+            font = BitmapFont()
+            fontColor = Color.GRAY
+            focusedFontColor = Color.WHITE
+        }
 
-        var textField = TextField("", textFieldStyle)
-        textField.setAlignment(Align.center)
-        textField.messageText = "enter name"
-        textField.maxLength = 20
+        //init
+        val textField = TextField("", textFieldStyle).apply {
+            setAlignment(Align.center)
+            messageText = "enter name"
+            maxLength = 20
+        }
 
         table.add(textField)
 
