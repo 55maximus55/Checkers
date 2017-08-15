@@ -1,4 +1,4 @@
-package ru.codemonkeystudio.checkers.Screens
+package ru.codemonkeystudio.checkers.screens
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Screen
