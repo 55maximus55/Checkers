@@ -65,9 +65,9 @@ class LoginScreen(game: GDXGame) : Screen {
     override fun resize(width: Int, height: Int) {
     }
 
-    override fun dispose() {
+    override fun hide() {
     }
 
-    override fun hide() {
+    override fun dispose() {
     }
 }
