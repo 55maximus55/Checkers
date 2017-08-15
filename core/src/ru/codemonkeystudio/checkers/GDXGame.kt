@@ -35,6 +35,10 @@ class GDXGame : Game() {
             } catch (e: JSONException) {
                 Gdx.app.log("SocketIO", "Error getting gameList")
             }
+            Gdx.app.log("SocketIO", "GameList")
+            for (i in 0..gameList.size - 1) {
+                Gdx.app.log(i.toString(), gameList[i])
+            }
         }
     }
 
