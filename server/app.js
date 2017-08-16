@@ -21,6 +21,8 @@ io.on('connection', function(socket) {
     socket.emit('gameList', games);
     //отправка списка комнат игроку
     socket.emit('roomList', rooms);
+    //отправка списка игроков
+    socket.emit('playerList', players);
 
     //создание комнаты
     socket.on('createRoom', function(data) {
@@ -30,14 +32,15 @@ io.on('connection', function(socket) {
                 if (players[i].room == -1) {
                     //проверка на существование игрового режима
                     var g = false;
-                    for (var i = 0; i < games.length; i++) {
-                        if (data.game == games[i]) {
+                    for (var j = 0; j < games.length; j++) {
+                        if (data.game == games[j]) {
                             g = true;
                         }
                     }
                     if (g) {
                         //создание комнаты и сообщение об этом игрокам
                         rooms.push(new room(data.game, socket.id));
+                        players[i].room = socket.id;
                         socket.emit('createRoomSuccess', { roomID: socket.id });
                         socket.broadcast.emit('createRoom', { roomID: socket.id, game: data.game });
                         console.log("Created Room (" + socket.id + ")");
@@ -55,7 +58,28 @@ io.on('connection', function(socket) {
 
     //вход в комнату
     socket.on('joinRoom', function(data) {
-        
+        for (var i = 0; i < players.length; i++) {
+            if (players[i].room != -1) {
+                var g = true;
+                for (var j = 0; j < rooms.length; j++) {
+                    if (rooms[j].id == data.id) {
+                        g = false;
+                        //вход в комнату и сообщение об этом игрокам
+                        players[i].room = data.id;
+                        rooms[j].players.push(socket.id);
+                        socket.emit('joinRoomSuccess', { roomID: rooms[j].id });
+                        socket.broadcast.emit('joinRoom', { playerID: socket.id, roomID: rooms[j].id });
+                        console.log("Player (" + socket.id +") joined to room (" + rooms[j].id + ")");
+                    }
+                }
+                if (g) {
+                    socket.emit('joinRoomError', { reason: "404: room not found"});
+                }
+            }
+            else {
+                socket.emit('createRoomError', { reason: "Leave another room before join another" });
+            }
+        }
     });
 
     //выход из комнаты
