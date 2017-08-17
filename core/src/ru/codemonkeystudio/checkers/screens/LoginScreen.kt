@@ -5,9 +5,11 @@ import com.badlogic.gdx.Screen
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g2d.BitmapFont
+import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.scenes.scene2d.ui.TextField
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.viewport.FitViewport
 import ru.codemonkeystudio.checkers.GDXGame
@@ -20,7 +22,8 @@ class LoginScreen(game: GDXGame) : Screen {
     var camera = OrthographicCamera()
     var stage = Stage(FitViewport(Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat(), camera))
 
-    val inp = CMSTextInputListener()
+    var inp = CMSTextInputListener()
+    lateinit var textField: TextField
 
     override fun show() {
         //set input
@@ -40,13 +43,18 @@ class LoginScreen(game: GDXGame) : Screen {
         }
 
         //init
-        val textField = TextField("", textFieldStyle).apply {
+        textField = TextField("", textFieldStyle).apply {
             setAlignment(Align.center)
             messageText = "enter name"
             maxLength = 20
+            isDisabled = true
+            addListener(object : ClickListener() {
+                override fun touchUp(event: InputEvent?, x: Float, y: Float, pointer: Int, button: Int) {
+                    super.touchUp(event, x, y, pointer, button)
+                    Gdx.input.getTextInput(inp, "Title", textField.text, "")
+                }
+            })
         }
-
-        Gdx.input.getTextInput(inp, "Title", "", "huy")
 
         table.add(textField)
 
@@ -61,7 +69,7 @@ class LoginScreen(game: GDXGame) : Screen {
         stage.draw()
 
         if (inp.a) {
-            println(inp.input)
+            textField.text = inp.input
             inp.a = false
         }
     }
