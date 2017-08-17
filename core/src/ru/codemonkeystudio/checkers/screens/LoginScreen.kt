@@ -11,6 +11,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextField
 import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.viewport.FitViewport
 import ru.codemonkeystudio.checkers.GDXGame
+import ru.codemonkeystudio.checkers.tools.CMSTextInputListener
 
 class LoginScreen(game: GDXGame) : Screen {
     var game: GDXGame = game
@@ -18,6 +19,8 @@ class LoginScreen(game: GDXGame) : Screen {
     //cam & stage
     var camera = OrthographicCamera()
     var stage = Stage(FitViewport(Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat(), camera))
+
+    val inp = CMSTextInputListener()
 
     override fun show() {
         //set input
@@ -43,6 +46,8 @@ class LoginScreen(game: GDXGame) : Screen {
             maxLength = 20
         }
 
+        Gdx.input.getTextInput(inp, "Title", "", "huy")
+
         table.add(textField)
 
         stage.addActor(table)
@@ -54,6 +59,11 @@ class LoginScreen(game: GDXGame) : Screen {
         stage.act()
         stage.setDebugAll(true)
         stage.draw()
+
+        if (inp.a) {
+            println(inp.input)
+            inp.a = false
+        }
     }
 
     override fun pause() {
