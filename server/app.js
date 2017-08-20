@@ -27,7 +27,7 @@ io.on('connection', function(socket) {
     //создание комнаты
     socket.on('createRoom', function(data) {
         for (var i = 0; i < players.length; i++) {
-            if (players[i] == socket.id) {
+            if (players[i].id == socket.id) {
                 //проверка на участие в других комнатах
                 if (players[i].room == -1) {
                     //проверка на существование игрового режима
@@ -43,7 +43,7 @@ io.on('connection', function(socket) {
                         players[i].room = socket.id;
                         socket.emit('createRoomSuccess', { roomID: socket.id });
                         socket.broadcast.emit('createRoom', { roomID: socket.id, game: data.game });
-                        console.log("Created Room (" + socket.id + ")");
+                        console.log("Created Room (" + socket.id + ", " + data.game + ")");
                     }
                     else {
                         socket.emit('createRoomError', { reason: "Invalid game name" });
@@ -141,19 +141,7 @@ function board(game) {
 }
 
 //Tic Tac Toe
-function tictactoeMove(data) {
-    
-}
-function tictactoePiece(x, y, zero) {
-    this.x = x;
-    this.y = y;
-    this.zero = zero;
-}
+
 
 //Checkers
-function checkersPiece(x, y, white) {
-    this.x = x;
-    this.y = y;
-    this.white = white;
-    this.king = false;
-}
+

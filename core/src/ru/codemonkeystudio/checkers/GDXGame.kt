@@ -3,6 +3,8 @@ package ru.codemonkeystudio.checkers
 import com.badlogic.gdx.Game
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.GL20
+import com.badlogic.gdx.graphics.g2d.TextureAtlas
+import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import io.socket.client.IO
 import io.socket.client.Socket
 import io.socket.client.SocketIOException
@@ -13,7 +15,6 @@ import ru.codemonkeystudio.checkers.objects.Player
 import ru.codemonkeystudio.checkers.objects.Room
 import ru.codemonkeystudio.checkers.screens.SplashScreen
 
-
 class GDXGame : Game() {
     lateinit var socket: Socket
     var gameList = ArrayList<String>()
@@ -21,7 +22,13 @@ class GDXGame : Game() {
     var rooms = HashMap<String, Room>()
     var players = HashMap<String, Player>()
 
+    var skin = Skin()
+    lateinit var uiAtlas : TextureAtlas
+
     override fun create() {
+        uiAtlas = TextureAtlas(Gdx.files.internal ("textures/textureUI.pack"))
+        skin.addRegions(uiAtlas)
+
         connectServer()
         configEvents()
 
@@ -35,7 +42,7 @@ class GDXGame : Game() {
         socket.on("gameList") { args ->
             val objects = args[0] as JSONArray
             try {
-                for (i in 0..objects.length() - 1) {
+                for (i in 0 until objects.length()) {
                     gameList.add(objects[i].toString())
                 }
             } catch (e: JSONException) {
@@ -49,9 +56,9 @@ class GDXGame : Game() {
         socket.on("roomList") { args ->
             val objects = args[0] as JSONArray
             try {
-                for (i in 0..objects.length() - 1) {
+                for (i in 0 until objects.length()) {
                     val players = ArrayList<String>()
-                    (0..objects.getJSONObject(i).getJSONArray("players").length() - 1).mapTo(players) { objects.getJSONObject(it).getJSONArray("players").getString(it) }
+                    (0 until objects.getJSONObject(i).getJSONArray("players").length()).mapTo(players) { objects.getJSONObject(it).getJSONArray("players").getString(it) }
                     rooms.put(objects.getJSONObject(i).getString("id"), Room(objects.getJSONObject(i).getString("game"), players))
                 }
             } catch (e: JSONException) {
@@ -61,7 +68,7 @@ class GDXGame : Game() {
         socket.on("playerList") { args ->
             val objects = args[0] as JSONArray
             try {
-                for (i in 0..objects.length() - 1) {
+                for (i in 0 until objects.length()) {
                     players.put(objects.getJSONObject(i).getString("id"), Player(objects.getJSONObject(i).getString("room")))
                 }
             }

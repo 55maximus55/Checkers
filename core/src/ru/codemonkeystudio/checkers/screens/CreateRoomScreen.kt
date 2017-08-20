@@ -8,20 +8,17 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Table
-import com.badlogic.gdx.scenes.scene2d.ui.TextField
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
-import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.viewport.FitViewport
+import org.json.JSONException
+import org.json.JSONObject
 import ru.codemonkeystudio.checkers.GDXGame
-import ru.codemonkeystudio.checkers.tools.CMSTextInputListener
 
-class LoginScreen(var game: GDXGame) : Screen {
+class CreateRoomScreen(var game: GDXGame) : Screen {
     //cam & stage
     var camera = OrthographicCamera()
     var stage = Stage(FitViewport(Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat(), camera))
-
-    var inp = CMSTextInputListener()
-    lateinit var textField: TextField
 
     override fun show() {
         //set input
@@ -34,27 +31,27 @@ class LoginScreen(var game: GDXGame) : Screen {
         }
 
         //init styles
-        val textFieldStyle = TextField.TextFieldStyle().apply {
+        val textButtonStyle = TextButton.TextButtonStyle().apply {
             font = BitmapFont()
-            fontColor = Color.GRAY
-            focusedFontColor = Color.WHITE
         }
 
-        //init
-        textField = TextField("", textFieldStyle).apply {
-            setAlignment(Align.center)
-            messageText = "enter name"
-            maxLength = 20
-            isDisabled = true
-            addListener(object : ClickListener() {
-                override fun touchUp(event: InputEvent?, x: Float, y: Float, pointer: Int, button: Int) {
-                    super.touchUp(event, x, y, pointer, button)
-                    Gdx.input.getTextInput(inp, "Title", textField.text, "")
-                }
-            })
-        }
+        (0 until game.gameList.size).map {
+            TextButton(game.gameList[it], textButtonStyle).apply {
+                addListener(object : ClickListener() {
+                    override fun touchUp(event: InputEvent?, x: Float, y: Float, pointer: Int, button: Int) {
+                        super.touchUp(event, x, y, pointer, button)
 
-        table.add(textField)
+                        val data = JSONObject()
+                        try {
+                            data.put("game", game.gameList[it])
+                            game.socket.emit("createRoom", data)
+                        } catch (e : JSONException) {}
+                    }
+                })
+            }
+        }.forEach {
+            table.add(it).pad(16f).row()
+        }
 
         stage.addActor(table)
     }
@@ -65,12 +62,6 @@ class LoginScreen(var game: GDXGame) : Screen {
         stage.act()
         stage.setDebugAll(true)
         stage.draw()
-
-        if (inp.a) {
-            textField.text = inp.input
-            inp.a = false
-            game.screen = LobbyScreen(game)
-        }
     }
 
     override fun pause() {

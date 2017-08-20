@@ -7,24 +7,21 @@ import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.Stage
+import com.badlogic.gdx.scenes.scene2d.ui.List
 import com.badlogic.gdx.scenes.scene2d.ui.Table
-import com.badlogic.gdx.scenes.scene2d.ui.TextField
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
-import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.viewport.FitViewport
 import ru.codemonkeystudio.checkers.GDXGame
-import ru.codemonkeystudio.checkers.tools.CMSTextInputListener
 
-class LoginScreen(var game: GDXGame) : Screen {
+class LobbyScreen(var game: GDXGame) : Screen {
     //cam & stage
     var camera = OrthographicCamera()
     var stage = Stage(FitViewport(Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat(), camera))
 
-    var inp = CMSTextInputListener()
-    lateinit var textField: TextField
+    lateinit var roomList: List<String>
 
     override fun show() {
-        //set input
         Gdx.input.inputProcessor = stage
 
         //init table
@@ -33,28 +30,54 @@ class LoginScreen(var game: GDXGame) : Screen {
             setFillParent(true)
         }
 
-        //init styles
-        val textFieldStyle = TextField.TextFieldStyle().apply {
-            font = BitmapFont()
-            fontColor = Color.GRAY
-            focusedFontColor = Color.WHITE
+        val tableTop = Table().apply {
+            center()
+//            setFillParent(true)
         }
 
-        //init
-        textField = TextField("", textFieldStyle).apply {
-            setAlignment(Align.center)
-            messageText = "enter name"
-            maxLength = 20
-            isDisabled = true
+        val listStyle = List.ListStyle().apply {
+            font = BitmapFont()
+            fontColorSelected = Color.WHITE
+            fontColorUnselected = Color.GRAY
+            selection = game.skin.getDrawable("knob")
+        }
+
+        val textButtonStyle = TextButton.TextButtonStyle().apply {
+            font = BitmapFont()
+        }
+
+        val buttonCreateRoom = TextButton("Create room", textButtonStyle).apply {
             addListener(object : ClickListener() {
                 override fun touchUp(event: InputEvent?, x: Float, y: Float, pointer: Int, button: Int) {
                     super.touchUp(event, x, y, pointer, button)
-                    Gdx.input.getTextInput(inp, "Title", textField.text, "")
+                    game.screen = CreateRoomScreen(game)
                 }
             })
         }
 
-        table.add(textField)
+        val buttonLogin = TextButton("Login", textButtonStyle).apply {
+            addListener(object : ClickListener() {
+                override fun touchUp(event: InputEvent?, x: Float, y: Float, pointer: Int, button: Int) {
+                    super.touchUp(event, x, y, pointer, button)
+                    game.screen = LoginScreen(game)
+                }
+            })
+        }
+
+        roomList = List(listStyle)
+        roomList.apply {
+            for (i in 0 until game.rooms.size) {
+                items.add(game.rooms.keys.elementAt(i))
+            }
+
+        }
+
+        tableTop.add(buttonCreateRoom).pad(16f)
+        tableTop.add(buttonLogin)
+
+        table.add(tableTop)
+        table.row()
+        table.add(roomList)
 
         stage.addActor(table)
     }
@@ -65,12 +88,6 @@ class LoginScreen(var game: GDXGame) : Screen {
         stage.act()
         stage.setDebugAll(true)
         stage.draw()
-
-        if (inp.a) {
-            textField.text = inp.input
-            inp.a = false
-            game.screen = LobbyScreen(game)
-        }
     }
 
     override fun pause() {
