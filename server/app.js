@@ -46,10 +46,12 @@ io.on('connection', function(socket) {
                         console.log("Created Room (" + socket.id + ", " + data.game + ")");
                     }
                     else {
+                        console.log("createRoomError (" + socket.id + "): invalid game name")
                         socket.emit('createRoomError', { reason: "Invalid game name" });
                     }
                 }
                 else {
+                    console.log("createRoomError (" + socket.id + "): player in room")
                     socket.emit('createRoomError', { reason: "Leave another room before create another" });
                 }
             }
@@ -116,8 +118,9 @@ io.on('connection', function(socket) {
                         }
                     }
                 }
-                //TODO("Удалить комнату если это был последний игрок")
                 players.splice(i, 1);
+                //Удаление комнаты, если это был последний игрок
+                
             }
         }
     });

@@ -19,6 +19,7 @@ class GDXGame : Game() {
     lateinit var socket: Socket
     var gameList = ArrayList<String>()
 
+    var roomID = "-1"
     var rooms = HashMap<String, Room>()
     var players = HashMap<String, Player>()
 
@@ -49,7 +50,7 @@ class GDXGame : Game() {
                 Gdx.app.log("SocketIO", "Error getting gameList")
             }
             Gdx.app.log("SocketIO", "GameList")
-            for (i in 0..gameList.size - 1) {
+            for (i in 0 until gameList.size) {
                 Gdx.app.log(i.toString(), gameList[i])
             }
         }
@@ -81,6 +82,7 @@ class GDXGame : Game() {
             val data = args[0] as JSONObject
             try {
                 players.put(data.getString("id"), Player("-1"))
+                Gdx.app.log("SocketIO", "Player connected (${data.getString("id")})")
             }
             catch (e: JSONException) {
                 Gdx.app.log("SocketIO", "Error getting connected playerID")
@@ -99,9 +101,19 @@ class GDXGame : Game() {
                 Gdx.app.log("SocketIO", "Error getting disconnected playerID")
             }
         }
+
+        socket.on("createRoom") { args ->
+            val data = args[0] as JSONObject
+            val players = ArrayList<String>()
+            rooms.put(data.getString("roomID"), Room(data.getString("game"), players))
+        }
+        socket.on("deleteRoom") { args ->
+            val data = args[0] as JSONObject
+            rooms.remove(data.getString("roomID"))
+        }
     }
 
-    fun connectServer() {
+    private fun connectServer() {
         try {
             socket = IO.socket("http://217.25.223.86:34197")
             socket.connect()

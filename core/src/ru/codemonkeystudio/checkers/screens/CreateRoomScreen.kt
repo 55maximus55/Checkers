@@ -2,7 +2,6 @@ package ru.codemonkeystudio.checkers.screens
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Screen
-import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.scenes.scene2d.InputEvent
@@ -17,8 +16,11 @@ import ru.codemonkeystudio.checkers.GDXGame
 
 class CreateRoomScreen(var game: GDXGame) : Screen {
     //cam & stage
-    var camera = OrthographicCamera()
-    var stage = Stage(FitViewport(Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat(), camera))
+    private var camera = OrthographicCamera()
+    private var stage = Stage(FitViewport(Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat(), camera))
+
+    var setScreen = false
+    var gameMode = ""
 
     override fun show() {
         //set input
@@ -44,6 +46,25 @@ class CreateRoomScreen(var game: GDXGame) : Screen {
                         val data = JSONObject()
                         try {
                             data.put("game", game.gameList[it])
+                            game.socket.on("createRoomSuccess") { _ ->
+                                Gdx.app.log("CreateRoom", "Success")
+
+                                setScreen = true
+                                gameMode = game.gameList[it]
+                                game.roomID = game.socket.id()
+
+                                game.socket.off("createRoomSuccess")
+                                game.socket.off("createRoomError")
+                            }
+                            game.socket.on("createRoomError") { args ->
+                                val dataError = args[0] as JSONObject
+                                try {
+                                    Gdx.app.log("CreateRoom", dataError.getString("reason"))
+                                } catch (e: JSONException) {}
+
+                                game.socket.off("createRoomSuccess")
+                                game.socket.off("createRoomError")
+                            }
                             game.socket.emit("createRoom", data)
                         } catch (e : JSONException) {}
                     }
@@ -62,6 +83,8 @@ class CreateRoomScreen(var game: GDXGame) : Screen {
         stage.act()
         stage.setDebugAll(true)
         stage.draw()
+
+        setScreen()
     }
 
     override fun pause() {
@@ -77,5 +100,11 @@ class CreateRoomScreen(var game: GDXGame) : Screen {
     }
 
     override fun dispose() {
+    }
+
+    private fun setScreen () {
+        if (setScreen) {
+            game.screen = RoomScreen(game, gameMode)
+        }
     }
 }

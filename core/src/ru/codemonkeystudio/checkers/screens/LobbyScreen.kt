@@ -21,6 +21,8 @@ class LobbyScreen(var game: GDXGame) : Screen {
 
     lateinit var roomList: List<String>
 
+    var timer = 0f
+
     override fun show() {
         Gdx.input.inputProcessor = stage
 
@@ -69,7 +71,6 @@ class LobbyScreen(var game: GDXGame) : Screen {
             for (i in 0 until game.rooms.size) {
                 items.add(game.rooms.keys.elementAt(i))
             }
-
         }
 
         tableTop.add(buttonCreateRoom).pad(16f)
@@ -88,6 +89,17 @@ class LobbyScreen(var game: GDXGame) : Screen {
         stage.act()
         stage.setDebugAll(true)
         stage.draw()
+
+        timer += delta
+        if (timer >= 5f) {
+            roomList.items.apply {
+                clear()
+                for (i in 0 until game.rooms.size) {
+                    add(game.rooms.keys.elementAt(i))
+                }
+            }
+            timer -= 5f
+        }
     }
 
     override fun pause() {
