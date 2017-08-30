@@ -2,9 +2,11 @@ var app = require('express')();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 
+var HashMap = require('hashmap');
+
 var games = ["tictactoe", "checkers", "chess"]
-var rooms = []
-var players = []
+var rooms = new HashMap()
+var players = new HashMap()
 
 // запуск сервера
 server.listen(34197, function() {
@@ -15,73 +17,73 @@ server.listen(34197, function() {
 io.on('connection', function(socket) {
     console.log("Player connected (" + socket.id + ")");
     socket.broadcast.emit('playerConnected', { id: socket.id });
-    players.push(new player(socket.id));
+    players.set(socket.id, new player());
 
     //отправка списка игр игроку
     socket.emit('gameList', games);
     //отправка списка комнат игроку
-    socket.emit('roomList', rooms);
-    //отправка списка игроков
-    socket.emit('playerList', players);
+    var roomList = [];
+    var i = 0;
+    rooms.forEach(function(value, key) {
+        roomList.push(new room(value.game, key));
+        roomList[i].id = key;
+        i++;
+    });
+    socket.emit('roomList', roomList);
 
     //создание комнаты
     socket.on('createRoom', function(data) {
-        for (var i = 0; i < players.length; i++) {
-            if (players[i].id == socket.id) {
-                //проверка на участие в других комнатах
-                if (players[i].room == -1) {
-                    //проверка на существование игрового режима
-                    var g = false;
-                    for (var j = 0; j < games.length; j++) {
-                        if (data.game == games[j]) {
-                            g = true;
-                        }
-                    }
-                    if (g) {
-                        //создание комнаты и сообщение об этом игрокам
-                        rooms.push(new room(data.game, socket.id));
-                        players[i].room = socket.id;
-                        socket.emit('createRoomSuccess', { roomID: socket.id });
-                        socket.broadcast.emit('createRoom', { roomID: socket.id, game: data.game });
-                        console.log("Created Room (" + socket.id + ", " + data.game + ")");
-                    }
-                    else {
-                        console.log("createRoomError (" + socket.id + "): invalid game name")
-                        socket.emit('createRoomError', { reason: "Invalid game name" });
-                    }
-                }
-                else {
-                    console.log("createRoomError (" + socket.id + "): player in room")
-                    socket.emit('createRoomError', { reason: "Leave another room before create another" });
+        if (players.get(socket.id).room == "-1") {
+            //проверка на существование игрового режима
+            var g = false;
+            for (var j = 0; j < games.length; j++) {
+                if (data.game == games[j]) {
+                    g = true;
                 }
             }
+            if (g) {
+                //создание комнаты и сообщение об этом игрокам
+                rooms.set(socket.id, new room(data.game, socket.id));
+                players.get(socket.id).room = socket.id;
+                socket.emit('createRoomSuccess', { roomID: socket.id });
+                socket.broadcast.emit('createRoom', { roomID: socket.id, game: data.game });
+                console.log("Created Room (" + socket.id + ", " + data.game + ")");
+            }
+            else {
+                console.log("createRoomError (" + socket.id + "): invalid game name")
+                socket.emit('createRoomError', { reason: "Invalid game name" });
+            }
+        }
+        else {
+            console.log("createRoomError (" + socket.id + "): player in room")
+            socket.emit('createRoomError', { reason: "Leave another room before create another" });
         }
     });
 
     //вход в комнату
     socket.on('joinRoom', function(data) {
-        for (var i = 0; i < players.length; i++) {
-            if (players[i].room != -1) {
-                var g = true;
-                for (var j = 0; j < rooms.length; j++) {
-                    if (rooms[j].id == data.id) {
-                        g = false;
-                        //вход в комнату и сообщение об этом игрокам
-                        players[i].room = data.id;
-                        rooms[j].players.push(socket.id);
-                        socket.emit('joinRoomSuccess', { roomID: rooms[j].id });
-                        socket.broadcast.emit('joinRoom', { playerID: socket.id, roomID: rooms[j].id });
-                        console.log("Player (" + socket.id +") joined to room (" + rooms[j].id + ")");
-                    }
-                }
-                if (g) {
-                    socket.emit('joinRoomError', { reason: "404: room not found"});
-                }
-            }
-            else {
-                socket.emit('createRoomError', { reason: "Leave another room before join another" });
-            }
-        }
+        // for (var i = 0; i < players.length; i++) {
+        //     if (players[i].room != -1) {
+        //         var g = true;
+        //         for (var j = 0; j < rooms.length; j++) {
+        //             if (rooms[j].id == data.id) {
+        //                 g = false;
+        //                 //вход в комнату и сообщение об этом игрокам
+        //                 players[i].room = data.id;
+        //                 rooms[j].players.push(socket.id);
+        //                 socket.emit('joinRoomSuccess', { roomID: rooms[j].id });
+        //                 socket.broadcast.emit('joinRoom', { playerID: socket.id, roomID: rooms[j].id });
+        //                 console.log("Player (" + socket.id +") joined to room (" + rooms[j].id + ")");
+        //             }
+        //         }
+        //         if (g) {
+        //             socket.emit('joinRoomError', { reason: "404: room not found"});
+        //         }
+        //     }
+        //     else {
+        //         socket.emit('createRoomError', { reason: "Leave another room before join another" });
+        //     }
+        // }
     });
 
     //выход из комнаты
@@ -126,14 +128,12 @@ io.on('connection', function(socket) {
     });
 });
 
-function player(id) {
-    this.id = id;
-    this.room = -1;
+function player() {
+    this.room = "-1";
 }
 
 function room(game, id) {
     this.game = game;
-    this.id = id;
     this.players = [];
     this.players.push(id);
 }

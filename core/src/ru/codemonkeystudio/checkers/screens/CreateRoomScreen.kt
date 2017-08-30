@@ -44,29 +44,27 @@ class CreateRoomScreen(var game: GDXGame) : Screen {
                         super.touchUp(event, x, y, pointer, button)
 
                         val data = JSONObject()
-                        try {
-                            data.put("game", game.gameList[it])
-                            game.socket.on("createRoomSuccess") { _ ->
-                                Gdx.app.log("CreateRoom", "Success")
+                        data.put("game", game.gameList[it])
+                        game.socket.on("createRoomSuccess") { _ ->
+                            Gdx.app.log("CreateRoom", "Success")
 
-                                setScreen = true
-                                gameMode = game.gameList[it]
-                                game.roomID = game.socket.id()
+                            setScreen = true
+                            gameMode = game.gameList[it]
+                            game.roomID = game.socket.id()
 
-                                game.socket.off("createRoomSuccess")
-                                game.socket.off("createRoomError")
-                            }
-                            game.socket.on("createRoomError") { args ->
-                                val dataError = args[0] as JSONObject
-                                try {
-                                    Gdx.app.log("CreateRoom", dataError.getString("reason"))
-                                } catch (e: JSONException) {}
+                            game.socket.off("createRoomSuccess")
+                            game.socket.off("createRoomError")
+                        }
+                        game.socket.on("createRoomError") { args ->
+                            val dataError = args[0] as JSONObject
+                            try {
+                                Gdx.app.log("CreateRoom", dataError.getString("reason"))
+                            } catch (e: JSONException) {}
 
-                                game.socket.off("createRoomSuccess")
-                                game.socket.off("createRoomError")
-                            }
-                            game.socket.emit("createRoom", data)
-                        } catch (e : JSONException) {}
+                            game.socket.off("createRoomSuccess")
+                            game.socket.off("createRoomError")
+                        }
+                        game.socket.emit("createRoom", data)
                     }
                 })
             }

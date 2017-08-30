@@ -1,6 +1,5 @@
 package ru.codemonkeystudio.checkers.objects
 
-class Room (game: String, players: ArrayList<String>){
+class Room (game: String){
     var game = game
-    var players = players
 }
