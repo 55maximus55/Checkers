@@ -60,7 +60,7 @@ class GDXGame : Game() {
     }
 
     private fun connectServer() {
-        socket = IO.socket("http://localhost:34197")
+        socket = IO.socket("http://cms-minigames.herokuapp.com")
         socket.connect()
     }
 
